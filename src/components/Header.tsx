@@ -13,11 +13,11 @@ export default function Header() {
     const [{ x }, api] = useSpring(() => ({ x: width }))
 
     const open = ({ canceled } : { canceled: boolean}) => {
-      // when cancel is true, it means that the user passed the upwards threshold
+      // when cancel is true, it means that the user passed the sideways threshold
       // so we change the spring config to create a nice wobbly effect
       api.start({ x: 0, immediate: false, config: canceled ? config.wobbly : config.stiff })
-
     }
+
     const close = (velocity = 0) => {
       api.start({ x: width, immediate: false, config: { ...config.stiff, velocity} })
 
@@ -26,14 +26,13 @@ export default function Header() {
     const bind = useDrag(
       ({ last, velocity: [vx, ], direction: [dx, ], offset: [ox, ], cancel, canceled }) => {
 
-        // if the user drags up passed a threshold, then we cancel
+        // if the user drags left passed a threshold, then we cancel
         // the drag so that the sheet resets to its open position
         if (ox < -20) cancel()
 
         // when the user releases the sheet, we check whether it passed
-        // the threshold for it to close, or if we reset it to its open positino
+        // the threshold for it to close, or if we reset it to its open position
         if (last) {
-          // console.log('ox: ' + ox);
           if(ox > width * 0.5 || (vx > 0.5 && dx > 0)) {
             setMenuOpen(false);
             close(vx)
@@ -54,14 +53,16 @@ export default function Header() {
     useEffect(() => {
       // listening on window width to set menu open/closed respectively
       if (typeof window != 'undefined') {
-        if(window.innerWidth > 600) setMenuOpen(true);
+        if(window.innerWidth > 640) setMenuOpen(true);
         window.addEventListener('resize', windowWidth);
       }
       function windowWidth() {
-        if (window.innerWidth > 600) {
+        if (window.innerWidth > 640) {
           setMobDevice(false);
+          setMenuOpen(true)
         } else {
           setMobDevice(true);
+          setMenuOpen(false);
         }
       }
       return () => window.removeEventListener('resize', windowWidth);
@@ -144,18 +145,16 @@ export default function Header() {
     )
 
     function toggleMenu(event: MouseEvent) {
-      console.log('menuOpen: ' +menuOpen);
+
       setMenuOpen(prev => !prev);
       if(!menuOpen) {
-        console.log('opening menu ')
         open({canceled: false});
         disableBg();
       } else {
-        console.log('closing menu');
         close()
         enableBg();
       }
-      console.log(document.getElementById("navbar"));
+
     }
 
     function closeMenu() {
